@@ -1,0 +1,2373 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogiOps Portal — Operações Logísticas</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    /* ============================================================
+       CSS VARIABLES — THEMES
+    ============================================================ */
+    :root {
+      --primary:        #2563eb;
+      --primary-light:  #3b82f6;
+      --primary-dark:   #1d4ed8;
+      --success:        #22c55e;
+      --warning:        #f59e0b;
+      --danger:         #ef4444;
+      --info:           #06b6d4;
+
+      --bg:             #f8fafc;
+      --surface:        #ffffff;
+      --surface-2:      #f1f5f9;
+      --border:         #e2e8f0;
+      --text:           #0f172a;
+      --text-muted:     #64748b;
+      --text-inverse:   #f8fafc;
+
+      --sidebar-bg:     #0f172a;
+      --sidebar-text:   #94a3b8;
+      --sidebar-active: #2563eb;
+      --sidebar-hover:  #1e293b;
+      --sidebar-width:  260px;
+      --sidebar-collapsed: 64px;
+      --header-height:  60px;
+
+      --radius:         8px;
+      --radius-lg:      12px;
+      --shadow:         0 1px 3px rgba(0,0,0,.10), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md:      0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+      --shadow-lg:      0 10px 15px rgba(0,0,0,.10), 0 4px 6px rgba(0,0,0,.05);
+      --transition:     .22s cubic-bezier(.4,0,.2,1);
+    }
+
+    /* Dark theme */
+    [data-theme="dark"] {
+      --bg:         #0f172a;
+      --surface:    #1e293b;
+      --surface-2:  #334155;
+      --border:     #334155;
+      --text:       #f1f5f9;
+      --text-muted: #94a3b8;
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      overflow: hidden;
+      transition: background var(--transition), color var(--transition);
+    }
+
+    a { text-decoration: none; color: inherit; }
+    ul, ol { list-style: none; }
+    button { cursor: pointer; border: none; background: none; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ============================================================
+       SIDEBAR
+    ============================================================ */
+    #sidebar {
+      width: var(--sidebar-width);
+      min-height: 100vh;
+      background: var(--sidebar-bg);
+      display: flex;
+      flex-direction: column;
+      transition: width var(--transition);
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      z-index: 200;
+      overflow: hidden;
+    }
+
+    #sidebar.collapsed { width: var(--sidebar-collapsed); }
+
+    /* Sidebar logo */
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 16px;
+      border-bottom: 1px solid #1e293b;
+      min-height: var(--header-height);
+    }
+
+    .sidebar-logo .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .sidebar-logo .logo-text {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f1f5f9;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity var(--transition);
+    }
+
+    #sidebar.collapsed .logo-text { opacity: 0; width: 0; }
+
+    /* Nav groups */
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+
+    .nav-group { margin-bottom: 4px; }
+
+    .nav-group-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #475569;
+      padding: 8px 16px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      opacity: 1;
+      transition: opacity var(--transition);
+    }
+
+    #sidebar.collapsed .nav-group-label { opacity: 0; }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 16px;
+      color: var(--sidebar-text);
+      border-radius: var(--radius);
+      margin: 2px 8px;
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+      position: relative;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .nav-item:hover { background: var(--sidebar-hover); color: #f1f5f9; }
+
+    .nav-item.active {
+      background: var(--sidebar-active);
+      color: #fff;
+    }
+
+    .nav-item .nav-icon {
+      font-size: 16px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .nav-item .nav-label {
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 1;
+      transition: opacity var(--transition);
+    }
+
+    #sidebar.collapsed .nav-label { opacity: 0; width: 0; }
+
+    /* Tooltip for collapsed items */
+    #sidebar.collapsed .nav-item::after {
+      content: attr(data-label);
+      position: absolute;
+      left: calc(var(--sidebar-collapsed) + 8px);
+      background: #1e293b;
+      color: #f1f5f9;
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .15s;
+      z-index: 300;
+    }
+
+    #sidebar.collapsed .nav-item:hover::after { opacity: 1; }
+
+    /* Sidebar footer */
+    .sidebar-footer {
+      padding: 12px 8px;
+      border-top: 1px solid #1e293b;
+    }
+
+    /* ============================================================
+       MAIN LAYOUT
+    ============================================================ */
+    #app {
+      flex: 1;
+      margin-left: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: margin-left var(--transition);
+    }
+
+    #app.sidebar-collapsed { margin-left: var(--sidebar-collapsed); }
+
+    /* ============================================================
+       HEADER
+    ============================================================ */
+    #header {
+      height: var(--header-height);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      transition: background var(--transition), border-color var(--transition);
+    }
+
+    .header-toggle {
+      width: 36px; height: 36px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .header-toggle:hover { background: var(--surface-2); color: var(--text); }
+
+    .header-breadcrumb {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text);
+      margin-right: auto;
+    }
+
+    .header-breadcrumb span {
+      color: var(--text-muted);
+      font-weight: 400;
+      font-size: 13px;
+      margin-left: 6px;
+    }
+
+    /* Global filters */
+    .header-filters {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .filter-select {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 6px 10px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color var(--transition), background var(--transition);
+      outline: none;
+    }
+
+    .filter-select:focus { border-color: var(--primary); }
+
+    /* Notification bell */
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .action-btn {
+      position: relative;
+      width: 36px; height: 36px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .action-btn:hover { background: var(--surface-2); color: var(--text); }
+
+    .action-btn .badge {
+      position: absolute;
+      top: 4px; right: 4px;
+      background: var(--danger);
+      color: #fff;
+      font-size: 9px;
+      font-weight: 700;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Sync indicator */
+    .sync-icon { font-size: 14px; }
+    .sync-icon.spinning { animation: spin .8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Avatar */
+    .user-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Dark mode toggle */
+    .theme-toggle {
+      width: 36px; height: 36px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      transition: background var(--transition), color var(--transition);
+    }
+
+    .theme-toggle:hover { background: var(--surface-2); color: var(--text); }
+
+    /* Notification dropdown */
+    .notif-dropdown {
+      position: absolute;
+      top: calc(var(--header-height) - 4px);
+      right: 80px;
+      width: 320px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      display: none;
+      z-index: 500;
+    }
+
+    .notif-dropdown.open { display: block; }
+
+    .notif-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notif-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      font-size: 12px;
+      transition: background var(--transition);
+    }
+
+    .notif-item:hover { background: var(--surface-2); }
+    .notif-item:last-child { border-bottom: none; }
+
+    .notif-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+
+    .notif-dot.danger  { background: var(--danger); }
+    .notif-dot.warning { background: var(--warning); }
+    .notif-dot.info    { background: var(--info); }
+
+    /* Notification title inside dropdown items */
+    .notif-title {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    /* "Mark all read" button inside notification header */
+    .notif-mark-read {
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+      transition: color var(--transition);
+    }
+
+    .notif-mark-read:hover { color: var(--primary); }
+
+    /* ============================================================
+       PAGE / SECTIONS
+    ============================================================ */
+    #main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .section { display: none; }
+    .section.active { display: block; }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .section-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    /* ============================================================
+       KPI CARDS
+    ============================================================ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: transform .18s, box-shadow .18s, background var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--primary);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .kpi-card.success::before { background: var(--success); }
+    .kpi-card.warning::before { background: var(--warning); }
+    .kpi-card.danger::before  { background: var(--danger); }
+    .kpi-card.info::before    { background: var(--info); }
+
+    .kpi-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .kpi-delta {
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .kpi-delta.up   { color: var(--success); }
+    .kpi-delta.down { color: var(--danger); }
+
+    .kpi-icon {
+      position: absolute;
+      top: 16px; right: 16px;
+      font-size: 22px;
+      opacity: .15;
+    }
+
+    /* ============================================================
+       CHART CARDS
+    ============================================================ */
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      transition: background var(--transition);
+    }
+
+    .chart-card.full { grid-column: 1 / -1; }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .chart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .chart-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .chart-body { position: relative; height: 220px; }
+    .chart-body.tall { height: 280px; }
+
+    /* ============================================================
+       TABLES
+    ============================================================ */
+    .table-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 24px;
+      transition: background var(--transition);
+    }
+
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .table-toolbar-title { font-size: 14px; font-weight: 600; color: var(--text); }
+
+    .table-search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 10px;
+      flex: 1;
+      max-width: 280px;
+    }
+
+    .table-search i { color: var(--text-muted); font-size: 13px; }
+
+    .table-search input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 13px;
+      width: 100%;
+    }
+
+    .table-search input::placeholder { color: var(--text-muted); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    tbody td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      vertical-align: middle;
+    }
+
+    tbody tr:last-child td { border-bottom: none; }
+
+    tbody tr:hover { background: var(--surface-2); }
+
+    /* ============================================================
+       BADGES
+    ============================================================ */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 8px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-success { background: rgba(34,197,94,.12); color: #16a34a; }
+    .badge-warning { background: rgba(245,158,11,.12); color: #d97706; }
+    .badge-danger  { background: rgba(239,68,68,.12);  color: #dc2626; }
+    .badge-info    { background: rgba(6,182,212,.12);  color: #0891b2; }
+    .badge-neutral { background: rgba(100,116,139,.12); color: #64748b; }
+
+    [data-theme="dark"] .badge-success { background: rgba(34,197,94,.2); color: #4ade80; }
+    [data-theme="dark"] .badge-warning { background: rgba(245,158,11,.2); color: #fbbf24; }
+    [data-theme="dark"] .badge-danger  { background: rgba(239,68,68,.2);  color: #f87171; }
+    [data-theme="dark"] .badge-info    { background: rgba(6,182,212,.2);  color: #22d3ee; }
+
+    /* ============================================================
+       STATUS DOT
+    ============================================================ */
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .status-dot.ok      { background: var(--success); }
+    .status-dot.alert   { background: var(--warning); }
+    .status-dot.critical{ background: var(--danger); }
+    .status-dot.offline { background: var(--text-muted); }
+
+    /* ============================================================
+       BUTTONS
+    ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      transition: background var(--transition), transform .12s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { background: var(--surface-2); }
+
+    /* ============================================================
+       CONVEYOR GRID
+    ============================================================ */
+    .conveyor-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .conveyor-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: background var(--transition);
+    }
+
+    .conveyor-item-name { font-size: 13px; font-weight: 600; color: var(--text); }
+    .conveyor-item-speed { font-size: 11px; color: var(--text-muted); }
+
+    .conveyor-bar-bg {
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .conveyor-bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width .5s;
+    }
+
+    /* ============================================================
+       MODAL
+    ============================================================ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      z-index: 900;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: var(--shadow-lg);
+      animation: slideIn .25s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(-20px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .modal-title { font-size: 16px; font-weight: 700; color: var(--text); }
+
+    .modal-close {
+      width: 30px; height: 30px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted);
+      transition: background var(--transition);
+    }
+
+    .modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+    /* Form fields */
+    .form-group { margin-bottom: 16px; }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .form-input {
+      width: 100%;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 9px 12px;
+      font-size: 13px;
+      color: var(--text);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .form-input:focus { border-color: var(--primary); }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+    /* ============================================================
+       MOBILE OVERLAY
+    ============================================================ */
+    #sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 190;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 1024px) {
+      .header-filters { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      #sidebar {
+        width: var(--sidebar-width) !important;
+        left: calc(-1 * var(--sidebar-width));
+      }
+
+      #sidebar.mobile-open {
+        left: 0;
+      }
+
+      #sidebar-overlay { display: block; opacity: 0; pointer-events: none; transition: opacity var(--transition); }
+      #sidebar.mobile-open ~ #sidebar-overlay,
+      #sidebar-overlay.visible { opacity: 1; pointer-events: auto; }
+
+      #app { margin-left: 0 !important; }
+
+      .kpi-grid { grid-template-columns: 1fr 1fr; }
+      .chart-grid { grid-template-columns: 1fr; }
+      #main-content { padding: 16px; }
+      .header-filters { display: none; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ============================================================
+       ANIMATION — counter
+    ============================================================ */
+    @keyframes countUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .kpi-value { animation: countUp .5s ease both; }
+
+    /* ============================================================
+       SECTION TRANSITION
+    ============================================================ */
+    .section {
+      animation: fadeSection .25s ease both;
+    }
+
+    @keyframes fadeSection {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       MISC UTILITIES
+    ============================================================ */
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .gap-2 { gap: 8px; }
+    .gap-3 { gap: 12px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-4 { margin-top: 16px; }
+    .mb-4 { margin-bottom: 16px; }
+    .text-sm { font-size: 13px; }
+    .text-muted { color: var(--text-muted); }
+    .font-semibold { font-weight: 600; }
+
+    /* Inbound queue highlight */
+    .vehicle-waiting { background: rgba(245,158,11,.06); }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================================
+     SIDEBAR
+===================================================================== -->
+<nav id="sidebar" aria-label="Menu principal">
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <div class="logo-icon"><i class="fas fa-truck-fast"></i></div>
+    <span class="logo-text">LogiOps Portal</span>
+  </div>
+
+  <!-- Navigation -->
+  <div class="sidebar-nav">
+
+    <div class="nav-group">
+      <div class="nav-group-label">Principal</div>
+
+      <div class="nav-item active" data-section="gestao" data-label="Gestão" onclick="navigateTo('gestao', this)">
+        <i class="fas fa-gauge-high nav-icon"></i>
+        <span class="nav-label">Gestão</span>
+      </div>
+
+      <div class="nav-item" data-section="performance" data-label="Performance" onclick="navigateTo('performance', this)">
+        <i class="fas fa-chart-line nav-icon"></i>
+        <span class="nav-label">Performance</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Operações</div>
+
+      <div class="nav-item" data-section="asm" data-label="ASM" onclick="navigateTo('asm', this)">
+        <i class="fas fa-screwdriver-wrench nav-icon"></i>
+        <span class="nav-label">ASM</span>
+      </div>
+
+      <div class="nav-item" data-section="conveyor" data-label="Conveyor" onclick="navigateTo('conveyor', this)">
+        <i class="fas fa-conveyor-belt nav-icon"></i>
+        <span class="nav-label">Conveyor</span>
+      </div>
+
+      <div class="nav-item" data-section="inbound" data-label="Inbound" onclick="navigateTo('inbound', this)">
+        <i class="fas fa-arrow-down-to-bracket nav-icon"></i>
+        <span class="nav-label">Inbound</span>
+      </div>
+
+      <div class="nav-item" data-section="outbound" data-label="Outbound" onclick="navigateTo('outbound', this)">
+        <i class="fas fa-arrow-up-from-bracket nav-icon"></i>
+        <span class="nav-label">Outbound</span>
+      </div>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-group-label">Qualidade</div>
+
+      <div class="nav-item" data-section="tratativas" data-label="Tratativas" onclick="navigateTo('tratativas', this)">
+        <i class="fas fa-circle-exclamation nav-icon"></i>
+        <span class="nav-label">Tratativas</span>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="sidebar-footer">
+    <div class="nav-item" data-label="Configurações" onclick="alert('Configurações — em breve')">
+      <i class="fas fa-gear nav-icon"></i>
+      <span class="nav-label">Configurações</span>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile overlay -->
+<div id="sidebar-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- =====================================================================
+     MAIN APP
+===================================================================== -->
+<div id="app">
+
+  <!-- HEADER -->
+  <header id="header">
+    <!-- Hamburger / toggle -->
+    <button class="header-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Breadcrumb -->
+    <div class="header-breadcrumb" id="header-title">
+      Gestão <span>/ Dashboard Principal</span>
+    </div>
+
+    <!-- Global filters -->
+    <div class="header-filters">
+      <select class="filter-select" id="filter-station" onchange="simulateRefresh()">
+        <option>Todas Estações</option>
+        <option>Estação A1</option>
+        <option>Estação A2</option>
+        <option>Estação B1</option>
+        <option>Estação B2</option>
+      </select>
+      <select class="filter-select" id="filter-shift" onchange="simulateRefresh()">
+        <option>Todos Turnos</option>
+        <option>Turno A</option>
+        <option>Turno B</option>
+        <option>Turno C</option>
+      </select>
+      <select class="filter-select" id="filter-period" onchange="simulateRefresh()">
+        <option>Hoje</option>
+        <option>Últimos 7 dias</option>
+        <option>Últimos 30 dias</option>
+        <option>Este mês</option>
+      </select>
+    </div>
+
+    <!-- Actions -->
+    <div class="header-actions">
+      <!-- Sync indicator -->
+      <div class="action-btn" title="Sincronizando dados">
+        <i class="fas fa-rotate-right sync-icon" id="sync-icon"></i>
+      </div>
+
+      <!-- Notifications -->
+      <div class="action-btn" onclick="toggleNotifications()" title="Notificações" id="notif-btn">
+        <i class="fas fa-bell"></i>
+        <span class="badge" id="notif-badge">5</span>
+      </div>
+
+      <!-- Dark/Light mode -->
+      <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema" aria-label="Alternar tema">
+        <i class="fas fa-moon" id="theme-icon"></i>
+      </button>
+
+      <!-- Avatar -->
+      <div class="user-avatar" title="Perfil do usuário">JD</div>
+    </div>
+
+    <!-- Notification dropdown -->
+    <div class="notif-dropdown" id="notif-dropdown">
+      <div class="notif-header">
+        Notificações
+        <button class="notif-mark-read" onclick="clearNotifications()" aria-label="Marcar todas as notificações como lidas">Marcar todas lidas</button>
+      </div>
+      <div class="notif-item">
+        <span class="notif-dot danger"></span>
+        <div>
+          <div class="notif-title">Esteira C3 parada</div>
+          <div class="text-muted">Há 5 minutos — Operações</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-dot warning"></span>
+        <div>
+          <div class="notif-title">OTIF abaixo da meta</div>
+          <div class="text-muted">Há 18 minutos — KPIs</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-dot danger"></span>
+        <div>
+          <div class="notif-title">Ocorrência crítica #OC-2847</div>
+          <div class="text-muted">Há 32 minutos — Tratativas</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-dot info"></span>
+        <div>
+          <div class="notif-title">Relatório diário disponível</div>
+          <div class="text-muted">Há 1 hora — Gestão</div>
+        </div>
+      </div>
+      <div class="notif-item">
+        <span class="notif-dot warning"></span>
+        <div>
+          <div class="notif-title">Manutenção programada EQ-012</div>
+          <div class="text-muted">Há 2 horas — ASM</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main id="main-content">
+
+    <!-- ===========================================================
+         GESTÃO — Dashboard Principal
+    =========================================================== -->
+    <section id="section-gestao" class="section active">
+      <div class="section-title">Dashboard — Gestão</div>
+      <div class="section-subtitle">Visão executiva · Atualizado agora mesmo</div>
+
+      <!-- KPI cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Total de Pedidos</div>
+          <div class="kpi-value" data-target="12847">12.847</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +8.3% vs ontem</div>
+          <i class="fas fa-box kpi-icon"></i>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">OTIF</div>
+          <div class="kpi-value">94.7%</div>
+          <div class="kpi-delta down"><i class="fas fa-arrow-trend-down"></i> -1.2% vs ontem</div>
+          <i class="fas fa-bullseye kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Produtividade</div>
+          <div class="kpi-value">187 un/h</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +12.1% vs ontem</div>
+          <i class="fas fa-bolt kpi-icon"></i>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">Ocorrências Abertas</div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-delta down"><i class="fas fa-arrow-trend-up"></i> +5 hoje</div>
+          <i class="fas fa-triangle-exclamation kpi-icon"></i>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Volume Diário de Pedidos</div>
+              <div class="chart-subtitle">Últimos 30 dias</div>
+            </div>
+            <button class="btn btn-outline text-sm" onclick="refreshCharts()"><i class="fas fa-rotate-right"></i> Atualizar</button>
+          </div>
+          <div class="chart-body tall"><canvas id="chart-volume-diario"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Performance por Turno</div>
+              <div class="chart-subtitle">Atual vs Meta</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-turno"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Distribuição de Pedidos</div>
+              <div class="chart-subtitle">Por categoria</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-distribuicao"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Alert table -->
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar-title">Alertas Críticos — Últimas Ocorrências</div>
+          <div class="table-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar..." oninput="filterTable(this, 'table-alertas')" />
+          </div>
+        </div>
+        <table id="table-alertas">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Descrição</th>
+              <th>Responsável</th>
+              <th>Prazo</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#OC-2847</td>
+              <td>Esteira C3 parada por falha mecânica</td>
+              <td>Ricardo Alves</td>
+              <td>13/06 18:00</td>
+              <td><span class="badge badge-danger">Crítico</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2846</td>
+              <td>OTIF abaixo de 90% no Turno B</td>
+              <td>Fernanda Lima</td>
+              <td>13/06 20:00</td>
+              <td><span class="badge badge-warning">Alerta</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2845</td>
+              <td>Atraso na doca 07 — transportadora ausente</td>
+              <td>Carlos Moura</td>
+              <td>13/06 16:00</td>
+              <td><span class="badge badge-danger">Crítico</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2844</td>
+              <td>Divergência de inventário — corredor B-14</td>
+              <td>Ana Paula</td>
+              <td>14/06 09:00</td>
+              <td><span class="badge badge-warning">Alerta</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2843</td>
+              <td>Scanner indisponível — setor recebimento</td>
+              <td>Marcos Viana</td>
+              <td>13/06 17:00</td>
+              <td><span class="badge badge-success">Resolvido</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         PERFORMANCE
+    =========================================================== -->
+    <section id="section-performance" class="section">
+      <div class="section-title">Performance Operacional</div>
+      <div class="section-subtitle">KPIs operacionais · OEE · Produtividade por turno</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card success">
+          <div class="kpi-label">OEE</div>
+          <div class="kpi-value">82.4%</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +3.1% vs semana ant.</div>
+          <i class="fas fa-chart-pie kpi-icon"></i>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">Taxa de Erro</div>
+          <div class="kpi-value">0.87%</div>
+          <div class="kpi-delta down"><i class="fas fa-arrow-trend-up"></i> +0.12% vs meta</div>
+          <i class="fas fa-circle-xmark kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Retrabalho %</div>
+          <div class="kpi-value">1.34%</div>
+          <div class="kpi-delta down"><i class="fas fa-arrow-trend-down"></i> -0.22% vs semana ant.</div>
+          <i class="fas fa-rotate kpi-icon"></i>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Tempo Médio/Pedido</div>
+          <div class="kpi-value">4.2 min</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-down"></i> -0.3 min vs meta</div>
+          <i class="fas fa-stopwatch kpi-icon"></i>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Eficiência por Hora do Dia</div>
+              <div class="chart-subtitle">Disponibilidade · Performance · Qualidade</div>
+            </div>
+          </div>
+          <div class="chart-body tall"><canvas id="chart-eficiencia-hora"></canvas></div>
+        </div>
+
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Semana Atual vs Semana Anterior</div>
+              <div class="chart-subtitle">Volume de pedidos processados</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-semanas"></canvas></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar-title">Produtividade por Operador</div>
+          <div class="table-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar operador..." oninput="filterTable(this, 'table-operadores')" />
+          </div>
+        </div>
+        <table id="table-operadores">
+          <thead>
+            <tr>
+              <th>Operador</th>
+              <th>Setor</th>
+              <th>Un/hora</th>
+              <th>Meta</th>
+              <th>Atingimento</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>João Pereira</td><td>Separação A</td><td>210</td><td>180</td><td>116%</td><td><span class="badge badge-success">Acima</span></td></tr>
+            <tr><td>Maria Santos</td><td>Separação B</td><td>175</td><td>180</td><td>97%</td><td><span class="badge badge-warning">Próximo</span></td></tr>
+            <tr><td>Luis Costa</td><td>Conferência</td><td>198</td><td>190</td><td>104%</td><td><span class="badge badge-success">Acima</span></td></tr>
+            <tr><td>Ana Rodrigues</td><td>Recebimento</td><td>145</td><td>170</td><td>85%</td><td><span class="badge badge-danger">Abaixo</span></td></tr>
+            <tr><td>Pedro Oliveira</td><td>Expedição</td><td>192</td><td>180</td><td>107%</td><td><span class="badge badge-success">Acima</span></td></tr>
+            <tr><td>Camila Ferreira</td><td>Separação A</td><td>168</td><td>180</td><td>93%</td><td><span class="badge badge-warning">Próximo</span></td></tr>
+            <tr><td>Rafael Melo</td><td>Inbound</td><td>201</td><td>180</td><td>112%</td><td><span class="badge badge-success">Acima</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         ASM — Gestão de Ativos
+    =========================================================== -->
+    <section id="section-asm" class="section">
+      <div class="section-title">ASM — Gestão de Ativos e Manutenção</div>
+      <div class="section-subtitle">Monitoramento de equipamentos · MTBF · MTTR</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card success">
+          <div class="kpi-label">Equipamentos Ativos</div>
+          <div class="kpi-value">48</div>
+          <div class="kpi-delta up"><i class="fas fa-circle-check"></i> de 54 no total</div>
+          <i class="fas fa-industry kpi-icon"></i>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">Em Manutenção</div>
+          <div class="kpi-value">4</div>
+          <div class="kpi-delta down"><i class="fas fa-wrench"></i> 2 corretivas, 2 prev.</div>
+          <i class="fas fa-screwdriver-wrench kpi-icon"></i>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">MTBF</div>
+          <div class="kpi-value">312 h</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +18h vs último mês</div>
+          <i class="fas fa-clock kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">MTTR</div>
+          <div class="kpi-value">2.4 h</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-down"></i> -0.6h vs meta</div>
+          <i class="fas fa-hourglass-half kpi-icon"></i>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Status dos Equipamentos</div>
+              <div class="chart-subtitle">Distribuição atual</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-asm-status"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Histórico de Manutenções</div>
+              <div class="chart-subtitle">Últimos 6 meses</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-asm-manut"></canvas></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar-title">Registro de Ativos</div>
+          <div class="table-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar ativo..." oninput="filterTable(this, 'table-ativos')" />
+          </div>
+        </div>
+        <table id="table-ativos">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Equipamento</th>
+              <th>Setor</th>
+              <th>Última Manutenção</th>
+              <th>Próx. Manutenção</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>EQ-001</td><td>Esteira Principal C1</td><td>Operações</td><td>01/05/2026</td><td>01/07/2026</td><td><span class="badge badge-success">Operacional</span></td></tr>
+            <tr><td>EQ-002</td><td>Empilhadeira EP-07</td><td>Almoxarifado</td><td>10/04/2026</td><td>10/06/2026</td><td><span class="badge badge-warning">Manutenção Prev.</span></td></tr>
+            <tr><td>EQ-003</td><td>Paletizadora PL-03</td><td>Expedição</td><td>15/05/2026</td><td>15/07/2026</td><td><span class="badge badge-success">Operacional</span></td></tr>
+            <tr><td>EQ-004</td><td>Scanner de Código SC-11</td><td>Recebimento</td><td>20/03/2026</td><td>20/06/2026</td><td><span class="badge badge-danger">Manutenção Corr.</span></td></tr>
+            <tr><td>EQ-005</td><td>Balança Industrial BL-02</td><td>Qualidade</td><td>05/05/2026</td><td>05/08/2026</td><td><span class="badge badge-success">Operacional</span></td></tr>
+            <tr><td>EQ-006</td><td>Esteira C3</td><td>Operações</td><td>12/05/2026</td><td>12/07/2026</td><td><span class="badge badge-danger">Parado</span></td></tr>
+            <tr><td>EQ-012</td><td>Transportador TC-04</td><td>Inbound</td><td>03/06/2026</td><td>13/06/2026</td><td><span class="badge badge-warning">Manutenção Prev.</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         CONVEYOR
+    =========================================================== -->
+    <section id="section-conveyor" class="section">
+      <div class="section-title">Conveyor — Monitoramento de Esteiras</div>
+      <div class="section-subtitle">Velocidade · Capacidade · Utilização em tempo real</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card success">
+          <div class="kpi-label">Esteiras Ativas</div>
+          <div class="kpi-value">9/12</div>
+          <div class="kpi-delta up"><i class="fas fa-circle-check"></i> 3 em manutenção</div>
+          <i class="fas fa-conveyor-belt kpi-icon"></i>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Velocidade Média</div>
+          <div class="kpi-value">1.8 m/s</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +0.1 vs hora ant.</div>
+          <i class="fas fa-gauge kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Throughput Total</div>
+          <div class="kpi-value">3.420 un/h</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +210 vs meta</div>
+          <i class="fas fa-layer-group kpi-icon"></i>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">% Utilização Média</div>
+          <div class="kpi-value">76.3%</div>
+          <div class="kpi-delta down"><i class="fas fa-arrow-trend-down"></i> -4% vs pico</div>
+          <i class="fas fa-chart-area kpi-icon"></i>
+        </div>
+      </div>
+
+      <!-- Conveyor status grid -->
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Status das Esteiras</div>
+      <div class="conveyor-grid" id="conveyor-grid">
+        <!-- Populated by JS -->
+      </div>
+
+      <!-- Chart -->
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Throughput por Esteira</div>
+              <div class="chart-subtitle">Últimas 12 horas</div>
+            </div>
+          </div>
+          <div class="chart-body tall"><canvas id="chart-conveyor-throughput"></canvas></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         INBOUND
+    =========================================================== -->
+    <section id="section-inbound" class="section">
+      <div class="section-title">Inbound — Recebimento</div>
+      <div class="section-subtitle">Dock scheduling · Fila de veículos · Volume recebido</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card warning">
+          <div class="kpi-label">Veículos Aguardando</div>
+          <div class="kpi-value">7</div>
+          <div class="kpi-delta down"><i class="fas fa-truck"></i> +3 vs média</div>
+          <i class="fas fa-truck kpi-icon"></i>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Docas Ocupadas</div>
+          <div class="kpi-value">8/12</div>
+          <div class="kpi-delta up"><i class="fas fa-warehouse"></i> 67% ocupação</div>
+          <i class="fas fa-warehouse kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Tempo Médio Descarga</div>
+          <div class="kpi-value">38 min</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-down"></i> -7 min vs meta</div>
+          <i class="fas fa-clock kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Volume Recebido</div>
+          <div class="kpi-value">4.218 cxs</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> +318 vs ontem</div>
+          <i class="fas fa-boxes-stacked kpi-icon"></i>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Volume Recebido por Hora</div>
+              <div class="chart-subtitle">Caixas recebidas · Turno atual</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-inbound-volume"></canvas></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar-title">Fila de Veículos</div>
+          <div class="table-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar placa ou transportadora..." oninput="filterTable(this, 'table-veiculos')" />
+          </div>
+        </div>
+        <table id="table-veiculos">
+          <thead>
+            <tr>
+              <th>Placa</th>
+              <th>Transportadora</th>
+              <th>NF</th>
+              <th>Chegada</th>
+              <th>Doca</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>ABC-1234</td><td>TransBrasil Log.</td><td>NF-001847</td><td>07:42</td><td>Doca 03</td><td><span class="badge badge-success">Em Descarga</span></td></tr>
+            <tr><td>DEF-5678</td><td>Rápido Transportes</td><td>NF-001848</td><td>08:15</td><td>Doca 07</td><td><span class="badge badge-success">Em Descarga</span></td></tr>
+            <tr><td>GHI-9012</td><td>Atlas Cargo</td><td>NF-001849</td><td>09:00</td><td>—</td><td><span class="badge badge-warning">Aguardando</span></td></tr>
+            <tr class="vehicle-waiting"><td>JKL-3456</td><td>Fast Log Brasil</td><td>NF-001850</td><td>09:18</td><td>—</td><td><span class="badge badge-warning">Aguardando</span></td></tr>
+            <tr class="vehicle-waiting"><td>MNO-7890</td><td>LogPrime</td><td>NF-001851</td><td>09:45</td><td>—</td><td><span class="badge badge-warning">Aguardando</span></td></tr>
+            <tr class="vehicle-waiting"><td>PQR-1234</td><td>Veloz Frete</td><td>NF-001852</td><td>10:02</td><td>—</td><td><span class="badge badge-danger">Atrasado</span></td></tr>
+            <tr><td>STU-5678</td><td>Mega Trans</td><td>NF-001840</td><td>06:30</td><td>Doca 01</td><td><span class="badge badge-info">Conferência</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         OUTBOUND
+    =========================================================== -->
+    <section id="section-outbound" class="section">
+      <div class="section-title">Outbound — Expedição</div>
+      <div class="section-subtitle">Ondas de separação · Carregamento · Status de saída</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card success">
+          <div class="kpi-label">Pedidos Separados</div>
+          <div class="kpi-value">2.841</div>
+          <div class="kpi-delta up"><i class="fas fa-arrow-trend-up"></i> 76% da meta diária</div>
+          <i class="fas fa-dolly kpi-icon"></i>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Em Carregamento</div>
+          <div class="kpi-value">5 OCs</div>
+          <div class="kpi-delta up"><i class="fas fa-truck-loading"></i> 5 docas ativas</div>
+          <i class="fas fa-truck-ramp-box kpi-icon"></i>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">Aguardando Coleta</div>
+          <div class="kpi-value">14 OCs</div>
+          <div class="kpi-delta down"><i class="fas fa-hourglass"></i> +4 vs planejado</div>
+          <i class="fas fa-clock kpi-icon"></i>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">Atraso na Expedição</div>
+          <div class="kpi-value">3 OCs</div>
+          <div class="kpi-delta down"><i class="fas fa-triangle-exclamation"></i> acima do SLA</div>
+          <i class="fas fa-circle-exclamation kpi-icon"></i>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card full">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Ondas de Separação ao Longo do Dia</div>
+              <div class="chart-subtitle">Pedidos processados por onda</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-outbound-ondas"></canvas></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar-title">Ordens de Carga</div>
+          <div class="table-search">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Buscar OC ou cliente..." oninput="filterTable(this, 'table-ocs')" />
+          </div>
+        </div>
+        <table id="table-ocs">
+          <thead>
+            <tr>
+              <th>OC</th>
+              <th>Cliente</th>
+              <th>Volumes</th>
+              <th>Previsão Saída</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>OC-08421</td><td>Magazine Center</td><td>248 cxs</td><td>13/06 14:00</td><td><span class="badge badge-success">Carregando</span></td></tr>
+            <tr><td>OC-08422</td><td>Grupo Varejo SP</td><td>183 cxs</td><td>13/06 14:30</td><td><span class="badge badge-success">Carregando</span></td></tr>
+            <tr><td>OC-08423</td><td>DistribuiRápido</td><td>312 cxs</td><td>13/06 15:00</td><td><span class="badge badge-info">Aguardando</span></td></tr>
+            <tr><td>OC-08424</td><td>Super Atacado Rio</td><td>95 cxs</td><td>13/06 13:30</td><td><span class="badge badge-danger">Atrasado</span></td></tr>
+            <tr><td>OC-08425</td><td>Comércio Norte</td><td>417 cxs</td><td>13/06 16:00</td><td><span class="badge badge-info">Separando</span></td></tr>
+            <tr><td>OC-08426</td><td>LogMais BH</td><td>128 cxs</td><td>13/06 15:30</td><td><span class="badge badge-warning">Em Conferência</span></td></tr>
+            <tr><td>OC-08427</td><td>Atacadão Sul</td><td>560 cxs</td><td>13/06 17:00</td><td><span class="badge badge-info">Separando</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===========================================================
+         TRATATIVAS
+    =========================================================== -->
+    <section id="section-tratativas" class="section">
+      <div class="section-title">Tratativas — Ocorrências e Não-Conformidades</div>
+      <div class="section-subtitle">Gestão de ocorrências · Planos de ação · SLA</div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card danger">
+          <div class="kpi-label">Total Abertas</div>
+          <div class="kpi-value">23</div>
+          <div class="kpi-delta down"><i class="fas fa-circle-dot"></i> pendentes de ação</div>
+          <i class="fas fa-list-check kpi-icon"></i>
+        </div>
+        <div class="kpi-card danger">
+          <div class="kpi-label">Críticas</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-delta down"><i class="fas fa-triangle-exclamation"></i> atenção imediata</div>
+          <i class="fas fa-fire kpi-icon"></i>
+        </div>
+        <div class="kpi-card warning">
+          <div class="kpi-label">Prazo Vencido</div>
+          <div class="kpi-value">3</div>
+          <div class="kpi-delta down"><i class="fas fa-calendar-xmark"></i> SLA expirado</div>
+          <i class="fas fa-calendar-xmark kpi-icon"></i>
+        </div>
+        <div class="kpi-card success">
+          <div class="kpi-label">Resolvidas Hoje</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-delta up"><i class="fas fa-circle-check"></i> +2 vs média</div>
+          <i class="fas fa-check-double kpi-icon"></i>
+        </div>
+      </div>
+
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Distribuição por Tipo</div>
+              <div class="chart-subtitle">Ocorrências abertas</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-tratativas-tipo"></canvas></div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-header">
+            <div>
+              <div class="chart-title">Evolução de Ocorrências</div>
+              <div class="chart-subtitle">Últimos 7 dias</div>
+            </div>
+          </div>
+          <div class="chart-body"><canvas id="chart-tratativas-evolucao"></canvas></div>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-toolbar">
+          <div class="table-toolbar-title">Registro de Tratativas</div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="table-search">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Buscar tratativa..." oninput="filterTable(this, 'table-tratativas')" />
+            </div>
+            <button class="btn btn-primary" onclick="openModal()">
+              <i class="fas fa-plus"></i> Nova Ocorrência
+            </button>
+          </div>
+        </div>
+        <table id="table-tratativas">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Descrição</th>
+              <th>Tipo</th>
+              <th>Responsável</th>
+              <th>Prazo</th>
+              <th>Prioridade</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>#OC-2847</td>
+              <td>Esteira C3 parada</td>
+              <td>Equipamento</td>
+              <td>Ricardo Alves</td>
+              <td>13/06 18:00</td>
+              <td><span class="badge badge-danger">Crítica</span></td>
+              <td><span class="badge badge-warning">Em andamento</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2846</td>
+              <td>OTIF abaixo meta Turno B</td>
+              <td>KPI</td>
+              <td>Fernanda Lima</td>
+              <td>13/06 20:00</td>
+              <td><span class="badge badge-warning">Alta</span></td>
+              <td><span class="badge badge-warning">Em andamento</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2845</td>
+              <td>Atraso doca 07</td>
+              <td>Operacional</td>
+              <td>Carlos Moura</td>
+              <td>13/06 16:00</td>
+              <td><span class="badge badge-danger">Crítica</span></td>
+              <td><span class="badge badge-danger">Vencida</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2844</td>
+              <td>Divergência inventário B-14</td>
+              <td>Inventário</td>
+              <td>Ana Paula</td>
+              <td>14/06 09:00</td>
+              <td><span class="badge badge-warning">Alta</span></td>
+              <td><span class="badge badge-info">Aberta</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2843</td>
+              <td>Scanner SC-11 inoperante</td>
+              <td>Equipamento</td>
+              <td>Marcos Viana</td>
+              <td>13/06 17:00</td>
+              <td><span class="badge badge-neutral">Média</span></td>
+              <td><span class="badge badge-success">Resolvida</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2842</td>
+              <td>NF divergente — TransBrasil</td>
+              <td>Fiscal</td>
+              <td>Lucia Braga</td>
+              <td>14/06 12:00</td>
+              <td><span class="badge badge-neutral">Média</span></td>
+              <td><span class="badge badge-info">Aberta</span></td>
+            </tr>
+            <tr>
+              <td>#OC-2841</td>
+              <td>Acidente leve — setor E</td>
+              <td>Segurança</td>
+              <td>Gabriel Torres</td>
+              <td>13/06 23:59</td>
+              <td><span class="badge badge-danger">Crítica</span></td>
+              <td><span class="badge badge-warning">Em andamento</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div><!-- /#app -->
+
+<!-- =====================================================================
+     MODAL — Nova Ocorrência
+===================================================================== -->
+<div class="modal-overlay" id="modal-overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-label">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-label"><i class="fas fa-circle-plus" style="color:var(--primary);margin-right:8px"></i>Nova Ocorrência</span>
+      <button class="modal-close" onclick="closeModal()" aria-label="Fechar"><i class="fas fa-xmark"></i></button>
+    </div>
+
+    <form id="form-ocorrencia" onsubmit="submitOccurrence(event)">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo *</label>
+          <select class="form-input" required>
+            <option value="">Selecione...</option>
+            <option>Equipamento</option>
+            <option>Operacional</option>
+            <option>KPI</option>
+            <option>Inventário</option>
+            <option>Fiscal</option>
+            <option>Segurança</option>
+            <option>Qualidade</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prioridade *</label>
+          <select class="form-input" required>
+            <option value="">Selecione...</option>
+            <option>Crítica</option>
+            <option>Alta</option>
+            <option>Média</option>
+            <option>Baixa</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Descrição *</label>
+        <textarea class="form-input" rows="3" placeholder="Descreva a ocorrência em detalhes..." required></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Responsável *</label>
+          <input type="text" class="form-input" placeholder="Nome do responsável" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prazo *</label>
+          <input type="datetime-local" class="form-input" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Setor</label>
+        <select class="form-input">
+          <option value="">Selecione...</option>
+          <option>Recebimento</option>
+          <option>Expedição</option>
+          <option>Separação</option>
+          <option>Conferência</option>
+          <option>Manutenção</option>
+          <option>TI</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Observações</label>
+        <textarea class="form-input" rows="2" placeholder="Observações adicionais (opcional)..."></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================================
+     JAVASCRIPT
+===================================================================== -->
+<script>
+  /* ============================================================
+     THEME — dark / light
+  ============================================================ */
+  (function () {
+    const saved = localStorage.getItem('logiops-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeIcon(saved);
+  })();
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('logiops-theme', next);
+    updateThemeIcon(next);
+    // Rebuild charts with new colors after theme change
+    setTimeout(() => { destroyCharts(); buildChartsForSection(currentSection); }, 50);
+  }
+
+  function updateThemeIcon(theme) {
+    const icon = document.getElementById('theme-icon');
+    if (!icon) return;
+    icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+  }
+
+  /* ============================================================
+     SIDEBAR — toggle
+  ============================================================ */
+  let sidebarCollapsed = false;
+
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const app = document.getElementById('app');
+    const isMobile = window.innerWidth <= 768;
+
+    if (isMobile) {
+      sidebar.classList.toggle('mobile-open');
+      document.getElementById('sidebar-overlay').classList.toggle('visible');
+    } else {
+      sidebarCollapsed = !sidebarCollapsed;
+      sidebar.classList.toggle('collapsed', sidebarCollapsed);
+      app.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+    }
+  }
+
+  function closeMobileSidebar() {
+    document.getElementById('sidebar').classList.remove('mobile-open');
+    document.getElementById('sidebar-overlay').classList.remove('visible');
+  }
+
+  /* ============================================================
+     NAVIGATION — SPA
+  ============================================================ */
+  let currentSection = 'gestao';
+  const sectionTitles = {
+    gestao:      'Gestão / Dashboard Principal',
+    performance: 'Performance / KPIs Operacionais',
+    asm:         'ASM / Gestão de Ativos',
+    conveyor:    'Conveyor / Monitoramento de Esteiras',
+    inbound:     'Inbound / Recebimento',
+    outbound:    'Outbound / Expedição',
+    tratativas:  'Tratativas / Ocorrências',
+  };
+
+  function navigateTo(sectionId, navEl) {
+    if (currentSection === sectionId) return;
+
+    // Hide all sections
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    // Deactivate all nav items
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+    // Show target section
+    const target = document.getElementById('section-' + sectionId);
+    if (target) target.classList.add('active');
+
+    // Activate nav item
+    if (navEl) navEl.classList.add('active');
+
+    // Update breadcrumb
+    const parts = (sectionTitles[sectionId] || sectionId).split('/');
+    document.getElementById('header-title').innerHTML =
+      parts[0].trim() + (parts[1] ? ` <span>/ ${parts[1].trim()}</span>` : '');
+
+    currentSection = sectionId;
+
+    // Build charts for the new section
+    destroyCharts();
+    buildChartsForSection(sectionId);
+
+    // Close mobile sidebar if open
+    if (window.innerWidth <= 768) closeMobileSidebar();
+  }
+
+  /* ============================================================
+     CHARTS — management
+  ============================================================ */
+  const chartInstances = {};
+
+  function destroyCharts() {
+    Object.keys(chartInstances).forEach(key => {
+      if (chartInstances[key]) {
+        chartInstances[key].destroy();
+        delete chartInstances[key];
+      }
+    });
+  }
+
+  function buildChartsForSection(section) {
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const gridColor = dark ? 'rgba(255,255,255,.06)' : 'rgba(0,0,0,.06)';
+    const tickColor = dark ? '#64748b' : '#94a3b8';
+    const tooltipBg = dark ? '#1e293b' : '#ffffff';
+    const tooltipText = dark ? '#f1f5f9' : '#0f172a';
+
+    const defaults = {
+      plugins: {
+        legend: { labels: { color: tickColor, boxWidth: 12, font: { size: 12 } } },
+        tooltip: {
+          backgroundColor: tooltipBg,
+          titleColor: tooltipText,
+          bodyColor: tickColor,
+          borderColor: dark ? '#334155' : '#e2e8f0',
+          borderWidth: 1,
+          padding: 10,
+        },
+      },
+      scales: {
+        x: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } },
+        y: { ticks: { color: tickColor, font: { size: 11 } }, grid: { color: gridColor } },
+      },
+    };
+
+    if (section === 'gestao') buildGestaoCharts(defaults);
+    else if (section === 'performance') buildPerformanceCharts(defaults);
+    else if (section === 'asm') buildAsmCharts(defaults, tickColor);
+    else if (section === 'conveyor') buildConveyorCharts(defaults);
+    else if (section === 'inbound') buildInboundCharts(defaults);
+    else if (section === 'outbound') buildOutboundCharts(defaults);
+    else if (section === 'tratativas') buildTratativasCharts(defaults, tickColor);
+  }
+
+  /* Helpers */
+  function randomBetween(min, max, count) {
+    return Array.from({ length: count }, () => Math.floor(Math.random() * (max - min + 1)) + min);
+  }
+
+  function makeChart(id, type, data, options) {
+    const canvas = document.getElementById(id);
+    if (!canvas) return;
+    chartInstances[id] = new Chart(canvas, { type, data, options });
+  }
+
+  /* ---- GESTÃO ---- */
+  function buildGestaoCharts(def) {
+    const days = Array.from({ length: 30 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - (29 - i));
+      return `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}`;
+    });
+
+    makeChart('chart-volume-diario', 'line', {
+      labels: days,
+      datasets: [{
+        label: 'Pedidos',
+        data: randomBetween(9000, 14500, 30),
+        borderColor: '#3b82f6',
+        backgroundColor: 'rgba(59,130,246,.15)',
+        fill: true,
+        tension: .4,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+      }],
+    }, { ...def, plugins: { ...def.plugins }, scales: def.scales });
+
+    makeChart('chart-turno', 'bar', {
+      labels: ['Turno A', 'Turno B', 'Turno C'],
+      datasets: [
+        { label: 'Realizado', data: [4210, 3980, 4657], backgroundColor: '#3b82f6', borderRadius: 6 },
+        { label: 'Meta', data: [4000, 4000, 4000], backgroundColor: 'rgba(100,116,139,.25)', borderRadius: 6 },
+      ],
+    }, { ...def, scales: def.scales });
+
+    makeChart('chart-distribuicao', 'doughnut', {
+      labels: ['Fracionado', 'Paletizado', 'Carga Fechada', 'E-commerce'],
+      datasets: [{
+        data: [38, 27, 22, 13],
+        backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#a855f7'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    }, {
+      ...def,
+      cutout: '65%',
+      plugins: { ...def.plugins, legend: { ...def.plugins.legend, position: 'bottom' } },
+      scales: {},
+    });
+  }
+
+  /* ---- PERFORMANCE ---- */
+  function buildPerformanceCharts(def) {
+    const hours = Array.from({ length: 12 }, (_, i) => `${(6 + i).toString().padStart(2,'0')}:00`);
+
+    makeChart('chart-eficiencia-hora', 'bar', {
+      labels: hours,
+      datasets: [
+        { label: 'Disponibilidade', data: randomBetween(78, 98, 12), backgroundColor: '#3b82f6', borderRadius: 4 },
+        { label: 'Performance',    data: randomBetween(72, 95, 12), backgroundColor: '#22c55e', borderRadius: 4 },
+        { label: 'Qualidade',      data: randomBetween(88, 99, 12), backgroundColor: '#a855f7', borderRadius: 4 },
+      ],
+    }, { ...def, scales: def.scales });
+
+    makeChart('chart-semanas', 'line', {
+      labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'],
+      datasets: [
+        { label: 'Semana Atual',    data: randomBetween(3200, 4800, 7), borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.1)', fill: true, tension: .4 },
+        { label: 'Semana Anterior', data: randomBetween(2900, 4500, 7), borderColor: '#94a3b8', borderDash: [4, 3], fill: false, tension: .4 },
+      ],
+    }, { ...def, scales: def.scales });
+  }
+
+  /* ---- ASM ---- */
+  function buildAsmCharts(def, tickColor) {
+    makeChart('chart-asm-status', 'doughnut', {
+      labels: ['Operacional', 'Manutenção', 'Parado'],
+      datasets: [{
+        data: [48, 4, 2],
+        backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    }, {
+      ...def,
+      cutout: '60%',
+      plugins: { ...def.plugins, legend: { labels: { color: tickColor, boxWidth: 12 }, position: 'bottom' } },
+      scales: {},
+    });
+
+    const months = ['Jan','Fev','Mar','Abr','Mai','Jun'];
+    makeChart('chart-asm-manut', 'bar', {
+      labels: months,
+      datasets: [
+        { label: 'Preventiva', data: [8, 7, 9, 6, 8, 5], backgroundColor: '#3b82f6', borderRadius: 4 },
+        { label: 'Corretiva',  data: [3, 5, 2, 4, 3, 4], backgroundColor: '#ef4444', borderRadius: 4 },
+      ],
+    }, { ...def, scales: def.scales });
+  }
+
+  /* ---- CONVEYOR ---- */
+  function buildConveyorCharts(def) {
+    const hours = Array.from({ length: 12 }, (_, i) => `${(6 + i).toString().padStart(2,'0')}:00`);
+    const colors = ['#3b82f6','#22c55e','#f59e0b','#a855f7','#06b6d4'];
+    const names = ['C1','C2','C4','C5','C6'];
+
+    makeChart('chart-conveyor-throughput', 'line', {
+      labels: hours,
+      datasets: names.map((n, i) => ({
+        label: `Esteira ${n}`,
+        data: randomBetween(280, 420, 12),
+        borderColor: colors[i],
+        backgroundColor: colors[i] + '18',
+        fill: false,
+        tension: .4,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+      })),
+    }, { ...def, scales: def.scales });
+  }
+
+  /* ---- INBOUND ---- */
+  function buildInboundCharts(def) {
+    const hours = Array.from({ length: 10 }, (_, i) => `${(6 + i).toString().padStart(2,'0')}:00`);
+    makeChart('chart-inbound-volume', 'bar', {
+      labels: hours,
+      datasets: [{
+        label: 'Caixas Recebidas',
+        data: randomBetween(180, 580, 10),
+        backgroundColor: '#3b82f6',
+        borderRadius: 6,
+      }],
+    }, { ...def, scales: def.scales });
+  }
+
+  /* ---- OUTBOUND ---- */
+  function buildOutboundCharts(def) {
+    const waves = ['Onda 1\n06:00', 'Onda 2\n08:30', 'Onda 3\n10:00', 'Onda 4\n12:00', 'Onda 5\n14:00', 'Onda 6\n16:00'];
+    makeChart('chart-outbound-ondas', 'line', {
+      labels: ['06:00','08:30','10:00','12:00','14:00','16:00'],
+      datasets: [
+        {
+          label: 'Pedidos Processados',
+          data: [320, 480, 610, 530, 490, 400],
+          borderColor: '#22c55e',
+          backgroundColor: 'rgba(34,197,94,.12)',
+          fill: true,
+          tension: .4,
+          pointRadius: 5,
+          pointBackgroundColor: '#22c55e',
+        },
+        {
+          label: 'Meta por Onda',
+          data: [400, 400, 500, 500, 450, 400],
+          borderColor: '#94a3b8',
+          borderDash: [4, 3],
+          fill: false,
+          tension: 0,
+          pointRadius: 3,
+        },
+      ],
+    }, { ...def, scales: def.scales });
+  }
+
+  /* ---- TRATATIVAS ---- */
+  function buildTratativasCharts(def, tickColor) {
+    makeChart('chart-tratativas-tipo', 'pie', {
+      labels: ['Equipamento','Operacional','KPI','Inventário','Fiscal','Segurança'],
+      datasets: [{
+        data: [8, 5, 3, 4, 2, 1],
+        backgroundColor: ['#3b82f6','#f59e0b','#22c55e','#a855f7','#06b6d4','#ef4444'],
+        borderWidth: 0,
+        hoverOffset: 6,
+      }],
+    }, {
+      ...def,
+      plugins: { ...def.plugins, legend: { labels: { color: tickColor, boxWidth: 12 }, position: 'bottom' } },
+      scales: {},
+    });
+
+    makeChart('chart-tratativas-evolucao', 'line', {
+      labels: ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'],
+      datasets: [
+        { label: 'Abertas', data: [12, 15, 18, 14, 20, 17, 23], borderColor: '#ef4444', fill: false, tension: .4, pointRadius: 4 },
+        { label: 'Fechadas', data: [10, 13, 12, 15, 11, 14, 8], borderColor: '#22c55e', fill: false, tension: .4, pointRadius: 4 },
+      ],
+    }, { ...def, scales: def.scales });
+  }
+
+  /* ============================================================
+     CONVEYOR GRID — populate
+  ============================================================ */
+  function buildConveyorGrid() {
+    const conveyors = [
+      { name: 'Esteira C1', status: 'ok',       speed: '2.1 m/s', util: 88 },
+      { name: 'Esteira C2', status: 'ok',       speed: '1.8 m/s', util: 74 },
+      { name: 'Esteira C3', status: 'critical', speed: '0.0 m/s', util: 0  },
+      { name: 'Esteira C4', status: 'ok',       speed: '1.9 m/s', util: 81 },
+      { name: 'Esteira C5', status: 'ok',       speed: '2.0 m/s', util: 91 },
+      { name: 'Esteira C6', status: 'alert',    speed: '1.2 m/s', util: 45 },
+      { name: 'Esteira C7', status: 'ok',       speed: '1.7 m/s', util: 67 },
+      { name: 'Esteira C8', status: 'ok',       speed: '2.2 m/s', util: 95 },
+      { name: 'Esteira C9', status: 'ok',       speed: '1.6 m/s', util: 58 },
+      { name: 'Esteira C10',status: 'offline',  speed: '—',       util: 0  },
+      { name: 'Esteira C11',status: 'alert',    speed: '0.8 m/s', util: 30 },
+      { name: 'Esteira C12',status: 'offline',  speed: '—',       util: 0  },
+    ];
+
+    const statusColors = { ok: '#22c55e', alert: '#f59e0b', critical: '#ef4444', offline: '#64748b' };
+    const barColors    = { ok: '#22c55e', alert: '#f59e0b', critical: '#ef4444', offline: '#64748b' };
+    const labels       = { ok: 'Operacional', alert: 'Alerta', critical: 'Parada', offline: 'Offline' };
+
+    const grid = document.getElementById('conveyor-grid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    conveyors.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'conveyor-item';
+      el.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="status-dot ${c.status}"></span>
+          <span class="conveyor-item-name">${c.name}</span>
+        </div>
+        <div class="conveyor-item-speed">${c.speed} · ${labels[c.status]}</div>
+        <div class="conveyor-bar-bg">
+          <div class="conveyor-bar-fill" style="width:${c.util}%;background:${barColors[c.status]}"></div>
+        </div>
+        <div style="font-size:11px;color:var(--text-muted);text-align:right">${c.util}% utilização</div>
+      `;
+      grid.appendChild(el);
+    });
+  }
+
+  /* ============================================================
+     TABLE FILTER — real-time search
+  ============================================================ */
+  function filterTable(input, tableId) {
+    const query = input.value.toLowerCase();
+    const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(query) ? '' : 'none';
+    });
+  }
+
+  /* ============================================================
+     NOTIFICATIONS
+  ============================================================ */
+  function toggleNotifications() {
+    document.getElementById('notif-dropdown').classList.toggle('open');
+  }
+
+  function clearNotifications() {
+    document.getElementById('notif-badge').style.display = 'none';
+    document.getElementById('notif-dropdown').innerHTML = `
+      <div class="notif-header">Notificações</div>
+      <div style="padding:20px;text-align:center;color:var(--text-muted);font-size:13px">
+        <i class="fas fa-bell-slash" style="font-size:24px;display:block;margin-bottom:8px"></i>
+        Nenhuma notificação pendente
+      </div>`;
+  }
+
+  // Close dropdown on outside click
+  document.addEventListener('click', e => {
+    const dropdown = document.getElementById('notif-dropdown');
+    const btn = document.getElementById('notif-btn');
+    if (dropdown && !dropdown.contains(e.target) && !btn.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  /* ============================================================
+     MODAL — occurrence
+  ============================================================ */
+  function openModal() {
+    document.getElementById('modal-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  }
+
+  /* Base occurrence ID — the last simulated occurrence is #OC-2847 */
+  const OCCURRENCE_ID_OFFSET = 2841;
+
+  function submitOccurrence(e) {
+    e.preventDefault();
+    closeModal();
+    // Simulate adding row — ID is offset + current row count
+    const tbody = document.querySelector('#table-tratativas tbody');
+    const count = tbody.querySelectorAll('tr').length + OCCURRENCE_ID_OFFSET;
+    const newRow = document.createElement('tr');
+    newRow.innerHTML = `
+      <td>#OC-${count}</td>
+      <td>Nova ocorrência registrada</td>
+      <td>—</td>
+      <td>Usuário Atual</td>
+      <td>—</td>
+      <td><span class="badge badge-neutral">Média</span></td>
+      <td><span class="badge badge-info">Aberta</span></td>
+    `;
+    newRow.style.animation = 'countUp .4s ease';
+    tbody.prepend(newRow);
+    document.getElementById('form-ocorrencia').reset();
+    showToast('Ocorrência registrada com sucesso!');
+  }
+
+  /* ============================================================
+     TOAST notification
+  ============================================================ */
+  function showToast(msg) {
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      position:fixed; bottom:24px; right:24px; z-index:9999;
+      background:#22c55e; color:#fff; padding:12px 18px;
+      border-radius:8px; font-size:13px; font-weight:600;
+      box-shadow:0 4px 12px rgba(0,0,0,.2);
+      animation: countUp .3s ease;
+    `;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  /* ============================================================
+     SIMULATE REFRESH — filters change
+  ============================================================ */
+  function simulateRefresh() {
+    const icon = document.getElementById('sync-icon');
+    icon.classList.add('spinning');
+    setTimeout(() => {
+      icon.classList.remove('spinning');
+      // Rebuild charts to simulate data change
+      destroyCharts();
+      buildChartsForSection(currentSection);
+    }, 1200);
+  }
+
+  function refreshCharts() {
+    simulateRefresh();
+  }
+
+  /* ============================================================
+     AUTO-REFRESH — every 30 seconds
+  ============================================================ */
+  setInterval(() => {
+    const icon = document.getElementById('sync-icon');
+    icon.classList.add('spinning');
+    setTimeout(() => {
+      icon.classList.remove('spinning');
+    }, 1500);
+  }, 30000);
+
+  /* ============================================================
+     KEYBOARD — Escape closes modal / sidebar on mobile
+  ============================================================ */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal();
+      if (window.innerWidth <= 768) closeMobileSidebar();
+    }
+  });
+
+  /* ============================================================
+     INIT — on DOM ready
+  ============================================================ */
+  document.addEventListener('DOMContentLoaded', () => {
+    buildConveyorGrid();
+    buildChartsForSection('gestao');
+  });
+</script>
+</body>
+</html>
