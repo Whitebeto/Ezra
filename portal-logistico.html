@@ -403,6 +403,27 @@
     .notif-dot.warning { background: var(--warning); }
     .notif-dot.info    { background: var(--info); }
 
+    /* Notification title inside dropdown items */
+    .notif-title {
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+
+    /* "Mark all read" button inside notification header */
+    .notif-mark-read {
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: inherit;
+      padding: 0;
+      transition: color var(--transition);
+    }
+
+    .notif-mark-read:hover { color: var(--primary); }
+
     /* ============================================================
        PAGE / SECTIONS
     ============================================================ */
@@ -1030,40 +1051,40 @@
     <div class="notif-dropdown" id="notif-dropdown">
       <div class="notif-header">
         Notificações
-        <span style="font-size:11px;color:var(--text-muted);cursor:pointer" onclick="clearNotifications()">Marcar todas lidas</span>
+        <button class="notif-mark-read" onclick="clearNotifications()" aria-label="Marcar todas as notificações como lidas">Marcar todas lidas</button>
       </div>
       <div class="notif-item">
         <span class="notif-dot danger"></span>
         <div>
-          <div style="font-weight:600;color:var(--text);margin-bottom:2px">Esteira C3 parada</div>
+          <div class="notif-title">Esteira C3 parada</div>
           <div class="text-muted">Há 5 minutos — Operações</div>
         </div>
       </div>
       <div class="notif-item">
         <span class="notif-dot warning"></span>
         <div>
-          <div style="font-weight:600;color:var(--text);margin-bottom:2px">OTIF abaixo da meta</div>
+          <div class="notif-title">OTIF abaixo da meta</div>
           <div class="text-muted">Há 18 minutos — KPIs</div>
         </div>
       </div>
       <div class="notif-item">
         <span class="notif-dot danger"></span>
         <div>
-          <div style="font-weight:600;color:var(--text);margin-bottom:2px">Ocorrência crítica #OC-2847</div>
+          <div class="notif-title">Ocorrência crítica #OC-2847</div>
           <div class="text-muted">Há 32 minutos — Tratativas</div>
         </div>
       </div>
       <div class="notif-item">
         <span class="notif-dot info"></span>
         <div>
-          <div style="font-weight:600;color:var(--text);margin-bottom:2px">Relatório diário disponível</div>
+          <div class="notif-title">Relatório diário disponível</div>
           <div class="text-muted">Há 1 hora — Gestão</div>
         </div>
       </div>
       <div class="notif-item">
         <span class="notif-dot warning"></span>
         <div>
-          <div style="font-weight:600;color:var(--text);margin-bottom:2px">Manutenção programada EQ-012</div>
+          <div class="notif-title">Manutenção programada EQ-012</div>
           <div class="text-muted">Há 2 horas — ASM</div>
         </div>
       </div>
@@ -2259,12 +2280,15 @@
     if (e.target === document.getElementById('modal-overlay')) closeModal();
   }
 
+  /* Base occurrence ID — the last simulated occurrence is #OC-2847 */
+  const OCCURRENCE_ID_OFFSET = 2841;
+
   function submitOccurrence(e) {
     e.preventDefault();
     closeModal();
-    // Simulate adding row
+    // Simulate adding row — ID is offset + current row count
     const tbody = document.querySelector('#table-tratativas tbody');
-    const count = tbody.querySelectorAll('tr').length + 2841;
+    const count = tbody.querySelectorAll('tr').length + OCCURRENCE_ID_OFFSET;
     const newRow = document.createElement('tr');
     newRow.innerHTML = `
       <td>#OC-${count}</td>
