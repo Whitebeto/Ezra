@@ -138,6 +138,23 @@
 
     #sidebar.collapsed .logo-text { opacity: 0; width: 0; }
 
+    .sidebar-toggle-btn {
+      margin-left: auto;
+      width: 32px; height: 32px;
+      border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: #94a3b8;
+      transition: background var(--transition), color var(--transition);
+      flex-shrink: 0;
+      background: none;
+      border: none;
+    }
+
+    .sidebar-toggle-btn:hover { background: #1e293b; color: #f1f5f9; }
+
+    #sidebar.collapsed .sidebar-logo { justify-content: center; }
+    #sidebar.collapsed .sidebar-toggle-btn { margin-left: 0; }
+
     /* Nav groups */
     .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
 
@@ -919,6 +936,9 @@
   <div class="sidebar-logo">
     <div class="logo-icon"><i class="fas fa-truck-fast"></i></div>
     <span class="logo-text">LogiOps Portal</span>
+    <button class="sidebar-toggle-btn" onclick="toggleSidebar()" aria-label="Alternar menu lateral">
+      <i class="fas fa-angles-left"></i>
+    </button>
   </div>
 
   <!-- Navigation -->
@@ -1886,6 +1906,11 @@
       sidebarCollapsed = !sidebarCollapsed;
       sidebar.classList.toggle('collapsed', sidebarCollapsed);
       app.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+
+      const sidebarToggleBtn = document.querySelector('.sidebar-toggle-btn i');
+      if (sidebarToggleBtn) {
+        sidebarToggleBtn.className = sidebarCollapsed ? 'fas fa-angles-right' : 'fas fa-angles-left';
+      }
     }
   }
 
